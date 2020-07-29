@@ -1,6 +1,7 @@
 #include <random>
 #include "gtest/gtest.h"
 #include "Quadtree.h"
+#include "quadtree_test.hpp"
 
 using namespace quadtree;
 
@@ -89,20 +90,6 @@ bool checkIntersections(std::vector<std::pair<Node*, Node*>> intersections1,
     std::sort(std::begin(intersections2), std::end(intersections2));
     return intersections1 == intersections2;
 }
-
-class QuadtreeTest : public ::testing::TestWithParam<std::size_t>
-{
-protected:
-    QuadtreeTest()
-    {
-
-    }
-
-    ~QuadtreeTest() override
-    {
-
-    }
-};
 
 TEST_P(QuadtreeTest, AddAndQueryTest)
 {

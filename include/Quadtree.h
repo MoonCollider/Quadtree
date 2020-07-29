@@ -82,6 +82,16 @@ public:
         return intersections;
     }
 
+    const T* findClosest (const Box<Float>& box) const
+    {
+        return findClosestImpl(
+            box,
+            {nullptr, std::abs(mBox.width) + std::abs(mBox.height)},
+            *mRoot,
+            mBox
+        ).first;
+    }
+
 private:
     static constexpr auto Threshold = std::size_t(16);
     static constexpr auto MaxDepth = std::size_t(8);
@@ -337,6 +347,44 @@ private:
             for (const auto& child : node->children)
                 findIntersectionsInDescendants(child.get(), value, intersections);
         }
+    }
+
+    std::pair<const T*, Float> findClosestImpl (
+        const Box<Float>& searchBox,
+        std::pair<const T*, Float> best,
+        const Node& node,
+        const Box<Float>& nodeBox
+    ) const
+    {
+        const Float& bestDist = best.second;
+        if (distance(searchBox, nodeBox) > bestDist)
+            return best;
+
+        for (const auto& itm : node.values)
+        {
+            const Float currDist = distance(mGetBox(itm), searchBox);
+            if (currDist < bestDist)
+                best = std::make_pair(&itm, currDist);
+        }
+
+        const std::size_t rl = (searchBox.left * 2 + searchBox.width > nodeBox.left * 2 + nodeBox.width ? 1 : 0);
+        const std::size_t bt = (searchBox.top * 2 + searchBox.height > nodeBox.top * 2 + nodeBox.height ? 1 : 0);
+        std::array<std::size_t, 4> indices {
+            bt * 2 + rl,
+            bt * 2 + (1 - rl),
+            (1 - bt) * 2 + rl,
+            (1 - bt) * 2 + (1 - rl)
+        };
+
+        for (std::size_t i : indices)
+        {
+            if (node.children[i])
+            {
+                best = findClosestImpl(searchBox, best, *node.children[i], computeBox(nodeBox, static_cast<int>(i)));
+            }
+        }
+
+        return best;
     }
 };
 

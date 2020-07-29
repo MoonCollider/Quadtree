@@ -1,5 +1,5 @@
 find_package(GTest REQUIRED)
-add_executable(tests tests.cpp)
+add_executable(tests tests.cpp test_find_closest.cpp)
 target_link_libraries(tests PRIVATE quadtree GTest::GTest)
 setWarnings(tests)
 setStandard(tests)
