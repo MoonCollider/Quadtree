@@ -82,14 +82,21 @@ public:
         return intersections;
     }
 
-    const T* findClosest (const Box<Float>& box) const
+    template <typename P>
+    const T* findClosest (const Box<Float>& box, P&& predicate) const
     {
         return findClosestImpl(
             box,
             {nullptr, std::abs(mBox.width) + std::abs(mBox.height)},
             *mRoot,
-            mBox
+            mBox,
+            std::forward<P>(predicate)
         ).first;
+    }
+
+    const T* findClosest (const Box<Float>& box) const
+    {
+        return findClosest(box, [](const T&, const Box<Float>&) {return true;});
     }
 
 private:
@@ -349,11 +356,13 @@ private:
         }
     }
 
+    template <typename P>
     std::pair<const T*, Float> findClosestImpl (
         const Box<Float>& searchBox,
         std::pair<const T*, Float> best,
         const Node& node,
-        const Box<Float>& nodeBox
+        const Box<Float>& nodeBox,
+        P&& predicate
     ) const
     {
         const Float& bestDist = best.second;
@@ -362,8 +371,9 @@ private:
 
         for (const auto& itm : node.values)
         {
-            const Float currDist = distance(mGetBox(itm), searchBox);
-            if (currDist < bestDist)
+            auto currBox = mGetBox(itm);
+            const Float currDist = distance(currBox, searchBox);
+            if (currDist < bestDist && predicate(itm, currBox))
                 best = std::make_pair(&itm, currDist);
         }
 
@@ -380,7 +390,7 @@ private:
         {
             if (node.children[i])
             {
-                best = findClosestImpl(searchBox, best, *node.children[i], computeBox(nodeBox, static_cast<int>(i)));
+                best = findClosestImpl(searchBox, best, *node.children[i], computeBox(nodeBox, static_cast<int>(i)), predicate);
             }
         }
 
