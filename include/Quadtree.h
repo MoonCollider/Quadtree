@@ -99,6 +99,11 @@ public:
         return findClosest(box, [](const T&, const Box<Float>&) {return true;});
     }
 
+	const Box<Float>& area() const
+	{
+		return mBox;
+	}
+
 private:
     static constexpr auto Threshold = std::size_t(16);
     static constexpr auto MaxDepth = std::size_t(8);
